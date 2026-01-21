@@ -204,7 +204,7 @@ public class CallstackAnalyzer extends AbstractToolAndApplication {
 	}
 
 	@Override
-	public void update(Observable resource, Object notice) {
+	public void processRISCVUpdate(Observable resource, AccessNotice notice) {
 		switch (notice) {
 		case RegisterAccessNotice regNotice -> {
 			if (regNotice.getAccessType() == AccessNotice.WRITE) {
@@ -291,8 +291,6 @@ public class CallstackAnalyzer extends AbstractToolAndApplication {
 	
 	@Override
 	protected void updateDisplay() {
-		System.out.println("update display");
-		
 		int selectStart = eventLogArea.getSelectionStart();
 		int selectEnd = eventLogArea.getSelectionEnd();
 		boolean follow = selectStart == selectEnd && selectStart == eventLogArea.getText().length();
