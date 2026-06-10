@@ -13,12 +13,9 @@ import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
-import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Observable;
 import java.util.Optional;
@@ -196,11 +193,21 @@ public class CallstackAnalyzer extends AbstractToolAndApplication {
 	
 	@Override
 	protected void addAsObserver() {
+		// connect
 		addAsObserver(Memory.textBaseAddress, Memory.textLimitAddress);
 		addAsObserver(Memory.stackLimitAddress, Memory.stackBaseAddress);
 		addAsObserver(RegisterFile.getRegister("sp"));
 		addAsObserver(RegisterFile.getRegister("fp"));
 		addAsObserver(RegisterFile.getProgramCounterRegister());
+	}
+	
+	@Override
+	protected void deleteAsObserver() {
+		// disconnect
+		super.deleteAsObserver();
+		deleteAsObserver(RegisterFile.getRegister("sp"));
+		deleteAsObserver(RegisterFile.getRegister("fp"));
+		deleteAsObserver(RegisterFile.getProgramCounterRegister());
 	}
 
 	@Override
@@ -726,6 +733,11 @@ public class CallstackAnalyzer extends AbstractToolAndApplication {
 			}
 			case ExecuteReturn() -> {
 				Frame frame = frames.removeFirst();
+				if (frames.isEmpty()) {
+					messages.add(new Message(Message.Severity.WARNING,
+							"Return from function which was not entered with call."));
+					break;
+				}
 				Frame previous = frames.getFirst();
 				if (!frame.equals(previous)) {
 					messages.add(new Message(Message.Severity.WARNING,
